@@ -52,13 +52,12 @@ void main() {
 
     // Add aperiodic tasks with specific arrival times and execution costs
     addAperiodicTask(aperiodicTask1, 1 * TICKS_PER_SEC, 1);  // Aperiodic Task 1 arrives at T=5 and has cost 2
-    addAperiodicTask(aperiodicTask2, 2 * TICKS_PER_SEC, 3); // Aperiodic Task 2 arrives at T=10 and has cost 3
+    //addAperiodicTask(aperiodicTask2, 2 * TICKS_PER_SEC, 3); // Aperiodic Task 2 arrives at T=10 and has cost 3
 
     // Run the OS
     OS_run();
 }
 
-// Task 1: A periodic task
 void task1() {
     while (1) {
         task1Visualizer++;
@@ -66,7 +65,6 @@ void task1() {
     }
 }
 
-// Task 2: A periodic task
 void task2() {
     while (1) {
         task2Visualizer++;
@@ -74,7 +72,6 @@ void task2() {
     }
 }
 
-// Task 3: A periodic task
 void task3() {
     while (1) {
         task3Visualizer++;
