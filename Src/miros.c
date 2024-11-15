@@ -56,6 +56,8 @@ uint32_t const MAX_VAL = UINT32_MAX;
 AperiodicTask aperiodicTaskQueue[MAX_APERIODIC_TASKS];
 uint32_t aperiodicTaskCount = 0;
 
+uint32_t lowestPeriodTask = 0; // lowest period = highest priority
+
 void addAperiodicTask(void (*taskHandler)(void), uint32_t arrivalTime, uint32_t cost) {
     if (aperiodicTaskCount < MAX_APERIODIC_TASKS) {
         aperiodicTaskQueue[aperiodicTaskCount].taskHandler = taskHandler;
@@ -197,9 +199,21 @@ void OS_sched(void) {
      * */
 }
 
-void OS_run(void) {
+uint32_t getLowestPeriod() {
+	uint32_t _lowestPeriod = OS_thread[1]->Ti;
+    for(uint32_t i = 1; i < ARRAY_SIZE(OS_thread); i++) {
+        if (OS_thread[i]->Ti < _lowestPeriod) {
+        	_lowestPeriod = OS_thread[i]->Ti;
+        }
+    }
+    return _lowestPeriod;
+}
+
+void OS_run() {
     /* callback to configure and start interrupts */
     OS_onStartup();
+
+    lowestPeriodTask = getLowestPeriod();
 
     __disable_irq();
     OS_sched();
@@ -254,6 +268,7 @@ void OSThread_start(
 
     me->Ci = Ci;
     me->Ti = Ti;
+    me->startupTi = Ti;
     me->remainingTime = Ci;
     me->isActive = true;
 
@@ -321,6 +336,45 @@ void TaskAction(OSThread *task, uint32_t remainingTime){
 		ticksPassed = OSTotalTicks;
 		remainingTime--;
 	}
+}
+
+void sem_init(semaphore* s, int32_t initValue) {
+	Q_ASSERT(s);
+	s->semCount = initValue;
+	s->isBlocked = false;
+}
+
+void sem_wait(semaphore* s, OSThread* taskCaller) {
+	Q_ASSERT(s);
+	Q_ASSERT(taskCaller);
+	__disable_irq();
+	if (s->semCount == 0) {
+		s->isBlocked = true;
+	}
+	while (s->semCount == 0) {
+		OS_delay(1);
+		OS_sched();
+		if (s->isBlocked == false) {
+			break;
+		}
+	}
+	s->semCount--;
+	OS_sched();
+
+	taskCaller->Ti = lowestPeriodTask - 1;
+}
+
+void sem_post(semaphore* s, OSThread* taskCaller) {
+	Q_ASSERT(s);
+	__disable_irq();
+	s->semCount++;
+	if (s->isBlocked == true) {
+		s->isBlocked = false;
+	}
+	__enable_irq();
+	OS_sched();
+
+	taskCaller->Ti = taskCaller->startupTi;
 }
 
 __attribute__ ((naked, optimize("-fno-stack-protector")))

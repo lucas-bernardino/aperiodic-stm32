@@ -42,6 +42,7 @@ typedef struct {
     /* ... other attributes associated with a thread */
     uint32_t Ci;
     uint32_t Ti;
+    uint32_t startupTi;
     uint32_t remainingTime;
     bool isActive;
 } OSThread;
@@ -51,6 +52,11 @@ typedef struct {
     uint32_t arrivalTime;        // Time at which the task should be executed
     uint32_t remainingCost;     // The cost (remaining time to execute)
 } AperiodicTask;
+
+typedef struct {
+	int32_t semCount;
+	bool isBlocked;
+} semaphore;
 
 #define TICKS_PER_SEC 100U
 #define MAX_APERIODIC_TASKS 10  // Maximum number of aperiodic tasks that can be handled
@@ -66,7 +72,7 @@ void OS_onIdle(void);
 void OS_sched(void);
 
 /* transfer control to the RTOS to run the threads */
-void OS_run(void);
+void OS_run();
 
 /* blocking delay */
 void OS_delay(uint32_t ticks);
@@ -87,5 +93,11 @@ void OSThread_start(
 void TaskAction(OSThread *task, uint32_t remainingTime);
 
 void addAperiodicTask(void (*taskFunction)(void), uint32_t arrivalTime, uint32_t cost);
+
+void sem_init(semaphore* s, int32_t init_value);
+
+void sem_wait(semaphore* s, OSThread* taskCaller);
+
+void sem_post(semaphore* s, OSThread* taskCaller);
 
 #endif /* MIROS_H */
