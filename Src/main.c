@@ -7,8 +7,8 @@ uint32_t task2Visualizer = 0;
 uint32_t task3Visualizer = 0;
 
 // For debugging periodic tasks
-uint32_t aperiodicExecution = 0;
-uint32_t aperiodicExecution2 = 0;
+int32_t aperiodicExecution = -1;
+int32_t aperiodicExecution2 = -1;
 
 // Shared resource variable
 int32_t resource = 0;
@@ -62,32 +62,29 @@ int main() {
 
 void task1() {
     while (1) {
-        task1Visualizer++;
-    	/*sem_wait(&mutex, &task1Thread);
+    	sem_wait(&mutex, &task1Thread);
         resource = resource + 5;
-    	sem_post(&mutex, &task1Thread);*/
-        TaskAction(&task1Thread, task1Thread.remainingTime);
+    	sem_post(&mutex, &task1Thread);
+        TaskAction(&task1Thread, task1Thread.remainingTime, &task1Visualizer);
     }
 }
 
 void task2() {
     while (1) {
-        task2Visualizer++;
-        TaskAction(&task2Thread, task2Thread.remainingTime);
+        TaskAction(&task2Thread, task2Thread.remainingTime, &task2Visualizer);
     }
 }
 
 void task3() {
     while (1) {
-        task3Visualizer++;
-    	/*sem_wait(&mutex, &task3Thread);
+    	sem_wait(&mutex, &task3Thread);
         resource = resource - 5;
         // Simulating heavy computation, where task3 is taking a lot of time...
         for (counter = 0; counter < 1000000; counter++) {
             j = counter * counter;
         }
-        sem_post(&mutex, &task3Thread);*/
-    	TaskAction(&task3Thread, task3Thread.remainingTime);
+        sem_post(&mutex, &task3Thread);
+        TaskAction(&task3Thread, task3Thread.remainingTime, &task3Visualizer);
     }
 }
 

@@ -90,7 +90,7 @@ void OSThread_start(
     void *stkSto, uint32_t stkSize,
 	uint32_t Ci, uint32_t Ti);
 
-void TaskAction(OSThread *task, uint32_t remainingTime);
+void TaskAction(OSThread *task, uint32_t remainingTime, uint32_t *counterVisualizer);
 
 void addAperiodicTask(void (*taskFunction)(void), uint32_t arrivalTime, uint32_t cost);
 

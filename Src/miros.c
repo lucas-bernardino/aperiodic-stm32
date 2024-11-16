@@ -65,7 +65,7 @@ void addAperiodicTask(void (*taskHandler)(void), uint32_t arrivalTime, uint32_t 
         aperiodicTaskQueue[aperiodicTaskCount].remainingCost = cost;
         aperiodicTaskCount++;
 
-        // Sort the tasks by arrival time (bubble sort for simplicity)
+        // Sort the tasks by arrival time
         for (uint32_t i = 0; i < aperiodicTaskCount - 1; i++) {
             for (uint32_t j = i + 1; j < aperiodicTaskCount; j++) {
                 if (aperiodicTaskQueue[i].arrivalTime > aperiodicTaskQueue[j].arrivalTime) {
@@ -91,28 +91,27 @@ void executeAperiodicTasks() {
     for (uint32_t i = 0; i < aperiodicTaskCount; i++) {
         AperiodicTask *task = &aperiodicTaskQueue[i];
 
-        // Ensure the task is ready to execute (arrival time <= OSTotalTicks) and has remaining cost
+        // If ready to execute (arrival time <= OSTotalTicks) and has remaining cost
         if (task->arrivalTime <= OSTotalTicks && task->remainingCost > 0) {
-            // Check if no periodic task is running (i.e., we are in idle time)
+            // Check if no periodic task is running
             if (OS_curr == &idleThread) {
-                task->taskHandler(); // Execute the task for one tick
-                task->remainingCost--; // Decrease the remaining cost
+                task->taskHandler();
+                task->remainingCost--;
 
-                // If the task is finished, reset its arrival time to MAX_VAL
+                // If the aperiodic task is done, it will never arrive again
                 if (task->remainingCost == 0) {
                     task->arrivalTime = MAX_VAL;
                 }
-                return;  // Exit after executing one tick of an aperiodic task
+                return;
             }
         }
     }
 }
 
-// Check if there is aperiodic work to do during idle time
+// Only execute aperiodic tasks when no periodic tasks are active (idle time)
 void checkForIdleAndAperiodicTasks() {
-    // Only execute aperiodic tasks when no periodic tasks are active (idle time)
     if (OS_curr == &idleThread) {
-        executeAperiodicTasks();  // Execute aperiodic tasks if any are ready
+        executeAperiodicTasks();
     }
 }
 
@@ -199,6 +198,7 @@ void OS_sched(void) {
      * */
 }
 
+// Get lowest period from array of tasks (lowest period means highest priority)
 uint32_t getLowestPeriod() {
 	uint32_t _lowestPeriod = OS_thread[1]->Ti;
     for(uint32_t i = 1; i < ARRAY_SIZE(OS_thread); i++) {
@@ -323,7 +323,7 @@ void OSThread_start(
     }
 }
 
-void TaskAction(OSThread *task, uint32_t remainingTime){
+void TaskAction(OSThread *task, uint32_t remainingTime, uint32_t *counterVisualizer){
 	uint32_t ticksPassed = OSTotalTicks;
 	while(remainingTime > 0){
 		task->remainingTime--;
@@ -335,6 +335,7 @@ void TaskAction(OSThread *task, uint32_t remainingTime){
         }
 		ticksPassed = OSTotalTicks;
 		remainingTime--;
+		*counterVisualizer += 1;
 	}
 }
 
@@ -352,7 +353,6 @@ void sem_wait(semaphore* s, OSThread* taskCaller) {
 		s->isBlocked = true;
 	}
 	while (s->semCount == 0) {
-		OS_delay(1);
 		OS_sched();
 		if (s->isBlocked == false) {
 			break;
@@ -361,6 +361,7 @@ void sem_wait(semaphore* s, OSThread* taskCaller) {
 	s->semCount--;
 	OS_sched();
 
+	// The task now has the highest priority
 	taskCaller->Ti = lowestPeriodTask - 1;
 }
 
@@ -374,6 +375,7 @@ void sem_post(semaphore* s, OSThread* taskCaller) {
 	__enable_irq();
 	OS_sched();
 
+	// Give back the original priority (and period) to the task
 	taskCaller->Ti = taskCaller->startupTi;
 }
 
