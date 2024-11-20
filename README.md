@@ -92,4 +92,4 @@ Assim, ao executar o código em modo Debug e analisando as variáveis *task1Visu
 
 Ao executar o código com as tarefas aperiódicas, é possível verificar que elas serão executadas entre os *gaps* de tarefas periódicas. Ou seja, a tarefa aperiódica 1 será executada entre o tempo 9 e 10, e a tarefa aperiódica 2 será executada entre o tempo 14 e 15.
 
-Ao executar o código com o compartilhamento de recursos, é possível visualizar a variável *resource* sendo manipulada pela tarefa 1 e tarefa 3, de modo que não ocorre mais preempção quando estão nas zonas críticas.
+Ao executar o código com o compartilhamento de recursos, é possível visualizar a variável *resource* sendo manipulada pela tarefa 1 e tarefa 3, de modo que não ocorre mais preempção quando estão nas zonas críticas. A tarefa 1 é responsável por adicionar 5 unidades nessa variável, enquanto a tarefa 3 é responsável por tirar 5 unidades dela
