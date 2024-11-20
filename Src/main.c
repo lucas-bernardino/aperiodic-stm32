@@ -78,11 +78,11 @@ void task2() {
 void task3() {
     while (1) {
     	sem_wait(&mutex, &task3Thread);
-        resource = resource - 5;
-        // Simulating heavy computation, where task3 is taking a lot of time...
-        for (counter = 0; counter < 1000000; counter++) {
+        // Simulating some demanding task, taking more time than usual..
+        for (counter = 0; counter < 1000; counter++) {
             j = counter * counter;
         }
+        resource = resource - 5;
         sem_post(&mutex, &task3Thread);
         TaskAction(&task3Thread, task3Thread.remainingTime, &task3Visualizer);
     }
